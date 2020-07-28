@@ -1,0 +1,27 @@
+{{/* get file that matches the filename as specified as src="" in shortcode */}}
+{{ $src := .Page.Resources.GetMatch (printf "*%s*" (.Get "src")) }}
+
+{{/* set image sizes, these are hardcoded for now, x dictates that images are resized to this width */}}
+
+{{ $tinyw := default "500" }}
+{{ $smallw := default "800" }}
+{{ $mediumw := default "1200" }}
+{{ $largew := default "1500" }}
+
+{{/* only use images smaller than or equal to the src (original) image size, as Hugo will upscale small images */}}
+{{/* set the sizes attribute to (min-width: 35em) 1200px, 100vw unless overridden in shortcode */}}
+
+{{ with $src.RelPermalink }}
+  <img
+    sizes={{ with $.Get "sizes" }}'{{ . }}'{{ else }}
+          "(min-width:1366px) 1200px,
+          (min-width:1536px) 1500px,
+          100vw"{{ end}}
+    srcset='
+      {{ . }}?nf_resize=fit&w={{ $tinyw }} {{ $tinyw }}w, 
+      {{ . }}?nf_resize=fit&w={{ $smallw }} {{ $smallw }}w, 
+      {{ . }}?nf_resize=fit&w={{ $mediumw }} {{ $mediumw }}w,
+      {{ . }}?nf_resize=fit&w={{ $largew }} {{ $largew }}w'
+      src="{{ . }}?nf_resize=fit&w={{ $smallw }}"
+      alt={{ with $.Get "alt" }}"{{ . }}"{{ else }}""{{ end }}>
+{{ end }}

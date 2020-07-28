@@ -1,0 +1,43 @@
+<!--
+Put this file in /layouts/shortcodes/figure.html
+NB this overrides Hugo's built-in "figure" shortcode but is backwards compatible
+Documentation and licence at https://github.com/liwenyip/hugo-easy-gallery/
+-->
+<!-- count how many times we've called this shortcode; load the css if it's the first time -->
+{{- if not ($.Page.Scratch.Get "figurecount") }}<link rel="stylesheet" href="/css/hugo-easy-gallery.css" />{{ end }}
+{{- $.Page.Scratch.Add "figurecount" 1 -}}
+<!-- attempt to use page resources and Hugo image processing to reduce thumbnail sizes -->
+{{ $original := .Page.Resources.GetMatch (printf "*%s*" (.Get 0)) }}
+{{ $command := .Get 1 }}
+{{ $options := .Get 2 }}
+{{ if eq $command "Fit"}}
+{{ .Scratch.Set "image" ($original.Fit $options) }}
+{{ else if eq $command "Resize"}}
+{{ .Scratch.Set "image" ($original.Resize $options) }}
+{{ else if eq $command "Fill"}}
+{{ .Scratch.Set "image" ($original.Fill $options) }}
+{{ else }}
+{{ errorf "Invalid image processing command: Must be one of Fit, Fill or Resize."}}
+{{ end }}
+{{ $image := .Scratch.Get "image" }}
+<!-- use either src or link-thumb for thumbnail image -->
+{{- $thumb := .Get "src" | default (printf "%s." (.Get "thumb") | replace (.Get "link") ".") }}
+<div class="box{{ with .Get "caption-position" }} fancy-figure caption-position-{{.}}{{end}}{{ with .Get "caption-effect" }} caption-effect-{{.}}{{end}}" {{ with .Get "width" }}style="max-width:{{.}}"{{end}}>
+  <figure {{ with .Get "class" }}class="{{.}}"{{ end }} itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject">
+    <div class="img"{{ if .Parent }} style="background-image: url('{{ $image.RelPermalink }}');"{{ end }}{{ with .Get "size" }} data-size="{{.}}"{{ end }}>
+      <img itemprop="thumbnail" src="{{ $image.RelPermalink }}" {{ with .Get "alt" | default (.Get 3) }}alt="{{.}}"{{ end }}/><!-- <img> hidden if in .gallery -->
+    </div>
+    <a href="{{ $original.RelPermalink }}" itemprop="contentUrl"></a>
+    {{- if or (or (.Get "title") (.Get 3)) (.Get "attr")}}
+      <figcaption>
+        {{- with .Get "title" }}<h4>{{.}}</h4>{{ end }}
+        {{- if or (.Get 3) (.Get "attr")}}
+          <p>
+            {{- .Get 3 -}}
+            {{- with .Get "attrlink"}}<a href="{{.}}">{{ .Get "attr" }}</a>{{ else }}{{ .Get "attr"}}{{ end -}}
+          </p>
+        {{- end }}
+      </figcaption>
+    {{- end }}
+  </figure>
+</div>

@@ -1,0 +1,37 @@
+{{- if .IsNamedParams -}}
+    {{- .Scratch.Set "original" (.Page.Resources.GetMatch (printf "*%s*" (.Get "src"))) -}}
+    {{- .Scratch.Set "command" (.Get "command") -}}
+    {{- .Scratch.Set "options" (.Get "options") -}}
+{{- else }}
+    {{- .Scratch.Set "original" (.Page.Resources.GetMatch (printf "*%s*" (.Get 0))) -}}
+    {{- .Scratch.Set "command" (.Get 1) -}}
+    {{- .Scratch.Set "options" (.Get 2) -}}
+{{- end }}
+{{- with .Scratch.Get "command" -}}
+    {{- if eq "{{ . }}" "Fit" -}}
+        {{- .Scratch.Set "style" ("fit") -}}
+    {{- else if eq "{{ . }}" "Smartcrop" -}}
+        {{- .Scratch.Set "style" ("smartcrop") -}}
+    {{- end -}}
+{{- else -}}
+    {{- .Scratch.Set "style" ("fit") -}}
+{{- end -}}
+{{- with .Scratch.Get "options" -}}
+    {{- .Scratch.Set "option" ("{{ . }}") -}}
+{{- else -}}
+    {{- .Scratch.Set "option" ("500") -}}
+{{- end -}}
+{{- $style := .Scratch.Get "style" -}}
+{{- $option := .Scratch.Get "option" -}}
+{{- $query := "?nf_resize={{ $style }}&w={{ $option }}" }}
+"{{ $query }}"
+{{- with (.Scratch.Get "original").RelPermalink -}}
+    <figure style="padding: 4px; margin: auto">
+        <img style="max-width: 100%; width: auto; height: auto;" src="{{ . }}{{ $query }}" width="">
+        <figcaption>
+            <small>
+                "hello"
+            </small>
+        </figcaption>
+    </figure>
+{{- end -}}
